@@ -1,0 +1,11 @@
+{
+    "azureFunctions.deploySubpath": "modules\\PerceptFilterModule/bin/Release/netstandard2.0/publish",
+    "azureFunctions.projectLanguage": "C#",
+    "azureFunctions.projectRuntime": "~3",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.preDeployTask": "publish (functions)",
+    "azure-iot-edge.defaultPlatform": {
+        "platform": "amd64",
+        "alias": null
+    }
+}
