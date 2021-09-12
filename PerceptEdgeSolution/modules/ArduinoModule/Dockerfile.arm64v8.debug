@@ -18,6 +18,7 @@ COPY . ./
 RUN dotnet publish -c Debug -o out
 
 FROM base
+
 WORKDIR /app
 COPY --from=build-env /app/out ./
 
