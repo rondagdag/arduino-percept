@@ -1,11 +1,8 @@
 namespace ArduinoModule
 {
     using System;
-    using System.IO;
     using System.IO.Ports;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -30,17 +27,31 @@ namespace ArduinoModule
         static void Main(string[] args)
         {
 
-            string portName = "/dev/ttyACM0";
+            string portNames = "/dev/ttyACM0,/dev/ttyACM1";
+            string[] portNameList = portNames.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var loggerFactory = LoggerFactory.Create(builder =>
+            //try to connect to each port and find arduino
+            bool connected = false;
+            foreach (string portName in portNameList)
             {
-                builder.AddConsole();
-            });
+                // Create an instance of the Arduino board object.
+                if (ConnectToArduino(portName, 115200))
+                {
+                    connected = true;
+                    break;
+                }
+            }
+            
+            if (!connected)
+            {
+                Console.WriteLine("Could not connect to Arduino");
+                return;
+            }
+        }
 
-            // Statically register our factory. Note that this must be done before instantiation of any class that wants to use logging.
-            LogDispatcher.LoggerFactory = loggerFactory;
-
-            using (var port = new SerialPort(portName, 115200))
+        private static bool ConnectToArduino(string portName, int baudRate)
+        {
+            using (var port = new SerialPort(portName, baudRate))
             {
                 Console.WriteLine($"Connecting to Arduino on {portName}");
                 try
@@ -50,7 +61,6 @@ namespace ArduinoModule
                 catch (UnauthorizedAccessException x)
                 {
                     Console.WriteLine($"Could not open COM port: {x.Message} Possible reason: Arduino IDE connected or serial console open");
-                    return;
                 }
 
                 board = new ArduinoBoard(port.BaseStream);
@@ -68,6 +78,7 @@ namespace ArduinoModule
                         AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
                         Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
                         WhenCancelled(cts.Token).Wait();
+                        return true;
                     }
                 }
                 catch (TimeoutException x)
@@ -80,6 +91,7 @@ namespace ArduinoModule
                     board?.Dispose();
                 }
             }
+            return false;
         }
 
         /// <summary>
