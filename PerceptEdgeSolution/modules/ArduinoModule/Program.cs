@@ -1,11 +1,8 @@
 namespace ArduinoModule
 {
     using System;
-    using System.IO;
     using System.IO.Ports;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,20 +15,44 @@ namespace ArduinoModule
     class Program
     {
         static int counter;
-
+        static ArduinoBoard board;
         static void Main(string[] args)
         {
 
-            string portName = "/dev/ttyS3";
+            string portNames = "/dev/ttyS1,/dev/ttyS2,/dev/ttyS3,/dev/ttyS4";
 
-            var loggerFactory = LoggerFactory.Create(builder =>
+            string[] portNameList = portNames.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            //try to connect to each port and find arduino
+            bool connected = false;
+            foreach (string portName in portNameList)
             {
-                builder.AddConsole();
-            });
+                // Create an instance of the Arduino board object.
+                if (ConnectToArduino(portName, 115200))
+                {
+                    connected = true;
+                    break;
+                }
+            }
+            
+            if (!connected)
+            {
+                Console.WriteLine("Could not connect to Arduino");
+                return;
+            }
 
-            // Statically register our factory. Note that this must be done before instantiation of any class that wants to use logging.
-            LogDispatcher.LoggerFactory = loggerFactory;
+            // Initialize Connection to Azure IoT 
+            Init().Wait();
 
+            // Wait until the app unloads or is cancelled
+            var cts = new CancellationTokenSource();
+            AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
+            Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
+            WhenCancelled(cts.Token).Wait();
+        }
+
+        private static bool ConnectToArduino(string portName, int v)
+        {
             using (var port = new SerialPort(portName, 115200))
             {
                 Console.WriteLine($"Connecting to Arduino on {portName}");
@@ -42,17 +63,15 @@ namespace ArduinoModule
                 catch (UnauthorizedAccessException x)
                 {
                     Console.WriteLine($"Could not open COM port: {x.Message} Possible reason: Arduino IDE connected or serial console open");
-                    return;
                 }
 
-                ArduinoBoard board = new ArduinoBoard(port.BaseStream);
+                board = new ArduinoBoard(port.BaseStream);
                 try
                 {
                     // This implicitly connects
                     Console.WriteLine($"Connecting... Firmware version: {board.FirmwareVersion}, Builder: {board.FirmwareName}");
-                    //while (Menu(board))
-                    {
-                    }
+
+                    return true;
                 }
                 catch (TimeoutException x)
                 {
@@ -64,14 +83,7 @@ namespace ArduinoModule
                     board?.Dispose();
                 }
             }
-            
-            Init().Wait();
-
-            // Wait until the app unloads or is cancelled
-            var cts = new CancellationTokenSource();
-            AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
-            Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
-            WhenCancelled(cts.Token).Wait();
+            return false;
         }
 
         /// <summary>
