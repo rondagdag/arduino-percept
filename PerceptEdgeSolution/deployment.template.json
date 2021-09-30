@@ -107,7 +107,29 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.ArduinoModule}",
-              "createOptions": {}
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "Privileged": true,
+                  "NetworkMode": "host",
+                  "Devices": [
+                    {
+                      "PathOnHost": "/dev/ttyACM0",
+                      "PathInContainer": "/dev/ttyACM0",
+                      "CgroupPermissions": "rwm"
+                    },
+                    {
+                      "PathOnHost": "/dev/ttyACM1",
+                      "PathInContainer": "/dev/ttyACM1",
+                      "CgroupPermissions": "rwm"
+                    }
+                  ]
+                }
+              }
             }
           }
         }

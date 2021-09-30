@@ -16,18 +16,22 @@ namespace ArduinoModule
     using System.Collections.Generic;
     using System.Linq;
 
+    
+
     class Program
     {
         static int counter;
         static ArduinoBoard board;
         static GpioController gpioController;
         // Use Pin 6
-        const int gpio = 6;
+        const int gpio = 12;
 
         static void Main(string[] args)
         {
 
+            //string portNames = "COM3";
             string portNames = "/dev/ttyACM0,/dev/ttyACM1";
+            //string portNames = "/dev/ttyS3";
             string[] portNameList = portNames.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             //try to connect to each port and find arduino
@@ -69,17 +73,23 @@ namespace ArduinoModule
                     // This implicitly connects
                     Console.WriteLine($"Connecting... Firmware version: {board.FirmwareVersion}, Builder: {board.FirmwareName}");
                     //while (Menu(board))
-                    while (true)
-                    {
-                        Init().Wait();
+                    TestGpio(board).Wait();
+                    Buzz(gpio).Wait();
+                    Buzz(gpio).Wait();
+                    Buzz(gpio).Wait();
+                    return true;
 
-                        // Wait until the app unloads or is cancelled
-                        var cts = new CancellationTokenSource();
-                        AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
-                        Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
-                        WhenCancelled(cts.Token).Wait();
-                        return true;
-                    }
+                    // while (true)
+                    // {
+                    //     Init().Wait();
+
+                    //     // Wait until the app unloads or is cancelled
+                    //     var cts = new CancellationTokenSource();
+                    //     AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
+                    //     Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
+                    //     WhenCancelled(cts.Token).Wait();
+                    //     return true;
+                    // }
                 }
                 catch (TimeoutException x)
                 {
@@ -150,7 +160,7 @@ namespace ArduinoModule
                 
                 if (messageBody != null && messageBody.NEURAL_NETWORK != null && messageBody.NEURAL_NETWORK.Any())
                 {
-                    await Blink(gpio);
+                    await Buzz(gpio);
                     
                     using (var pipeMessage = new Message(messageBytes))
                     {
@@ -175,11 +185,15 @@ namespace ArduinoModule
             gpioController.OpenPin(gpio);
             gpioController.SetPinMode(gpio, PinMode.Output);
 
-            Console.WriteLine("Blinking GPIO6");
+            Console.WriteLine("Buzzing GPIO12");
             //while (!Console.KeyAvailable)
             //while (true)
             {
-                await Blink(gpio);
+                await Buzz(gpio);
+                await Buzz(gpio);
+                await Buzz(gpio);
+                await Buzz(gpio);
+                await Buzz(gpio);
                 //Thread.Sleep(500);
             }
 
@@ -187,9 +201,9 @@ namespace ArduinoModule
             //gpioController.Dispose();
         }
 
-        private static async Task Blink(int gpio)
+        private static async Task Buzz(int gpio)
         {
-            Console.WriteLine("blink");
+            Console.WriteLine("Buzz");
             gpioController.Write(gpio, PinValue.High);
             //Thread.Sleep(500);
             await Task.Delay(500);
