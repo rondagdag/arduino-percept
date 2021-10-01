@@ -10,11 +10,6 @@
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
             "registryCredentials": {
-              "docker": {
-                "username": "$CONTAINER_REGISTRY_USERNAME_docker",
-                "password": "$CONTAINER_REGISTRY_PASSWORD_docker",
-                "address": "docker.io"
-              }
             }
           }
         },
@@ -76,8 +71,8 @@
               "image": "marketplace.azurecr.io/1604376875527/wedx-nodered:latest",
               "createOptions": {
                 "HostConfig": {
+                  "Binds": ["node_red_data:/data"],
                   "PortBindings": {
-                    "Binds":["node_red_data:/data"],
                     "1880/tcp": [
                       {
                         "HostPort": "1880"
@@ -133,18 +128,18 @@
             }
           }
         }
-      },
-      "$edgeHub": {
-        "properties.desired": {
-          "schemaVersion": "1.2",
-          "routes": {
-            "FromNodeREDonIoTEdgeToPerceptFilterModule": "FROM /messages/modules/NodeREDonIoTEdge/outputs/* INTO BrokeredEndpoint(\"/modules/ArduinoModule/inputs/input1\")",
-            "sensorToArduinoModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/ArduinoModule/inputs/input1\")",
-            "ArduinoModuleToIoTHub": "FROM /messages/modules/ArduinoModule/outputs/* INTO $upstream"
-          },
-          "storeAndForwardConfiguration": {
-            "timeToLiveSecs": 7200
-          }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.2",
+        "routes": {
+          "FromNodeREDonIoTEdgeToPerceptFilterModule": "FROM /messages/modules/NodeREDonIoTEdge/outputs/* INTO BrokeredEndpoint(\"/modules/ArduinoModule/inputs/input1\")",
+          "sensorToArduinoModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/ArduinoModule/inputs/input1\")",
+          "ArduinoModuleToIoTHub": "FROM /messages/modules/ArduinoModule/outputs/* INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
         }
       }
     }

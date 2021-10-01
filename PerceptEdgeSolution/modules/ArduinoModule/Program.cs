@@ -29,6 +29,15 @@ namespace ArduinoModule
         static void Main(string[] args)
         {
 
+            Init().Wait();
+
+            // Wait until the app unloads or is cancelled
+            var cts = new CancellationTokenSource();
+            AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
+            Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
+            WhenCancelled(cts.Token).Wait();
+            return;
+
             //string portNames = "COM3";
             string portNames = "/dev/ttyACM0,/dev/ttyACM1";
             //string portNames = "/dev/ttyS3";
@@ -65,6 +74,7 @@ namespace ArduinoModule
                 catch (UnauthorizedAccessException x)
                 {
                     Console.WriteLine($"Could not open COM port: {x.Message} Possible reason: Arduino IDE connected or serial console open");
+                    return false;
                 }
 
                 board = new ArduinoBoard(port.BaseStream);
@@ -73,23 +83,25 @@ namespace ArduinoModule
                     // This implicitly connects
                     Console.WriteLine($"Connecting... Firmware version: {board.FirmwareVersion}, Builder: {board.FirmwareName}");
                     //while (Menu(board))
-                    TestGpio(board).Wait();
-                    Buzz(gpio).Wait();
-                    Buzz(gpio).Wait();
-                    Buzz(gpio).Wait();
+                    // TestGpio(board).Wait();
+                    // Buzz(gpio).Wait();
+                    // Buzz(gpio).Wait();
+                    // Buzz(gpio).Wait();
+                    //return true;
+
+                    //while (true)
+                    //{
+
+                    Init().Wait();
+
+                    // Wait until the app unloads or is cancelled
+                    var cts = new CancellationTokenSource();
+                    AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
+                    Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
+                    WhenCancelled(cts.Token).Wait();
                     return true;
 
-                    // while (true)
-                    // {
-                    //     Init().Wait();
-
-                    //     // Wait until the app unloads or is cancelled
-                    //     var cts = new CancellationTokenSource();
-                    //     AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
-                    //     Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
-                    //     WhenCancelled(cts.Token).Wait();
-                    //     return true;
-                    // }
+                    //}
                 }
                 catch (TimeoutException x)
                 {
@@ -119,7 +131,8 @@ namespace ArduinoModule
         /// messages containing temperature information
         /// </summary>
         static async Task Init()
-        {
+        {            
+            Console.WriteLine("Initializing IoT Hub module client");
             MqttTransportSettings mqttSetting = new MqttTransportSettings(TransportType.Mqtt_Tcp_Only);
             ITransportSettings[] settings = { mqttSetting };
 
@@ -127,11 +140,12 @@ namespace ArduinoModule
             ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
+
+            //await TestGpio(board);
             
             // Register callback to be called when a message is received by the module
-            await ioTHubModuleClient.SetInputMessageHandlerAsync("input1", PipeMessage, ioTHubModuleClient);
+            await ioTHubModuleClient.SetInputMessageHandlerAsync("input1", PipeMessage, ioTHubModuleClient);            
             
-            await TestGpio(board);
         }
 
         /// <summary>
@@ -160,7 +174,7 @@ namespace ArduinoModule
                 
                 if (messageBody != null && messageBody.NEURAL_NETWORK != null && messageBody.NEURAL_NETWORK.Any())
                 {
-                    await Buzz(gpio);
+                    //await Buzz(gpio);
                     
                     using (var pipeMessage = new Message(messageBytes))
                     {
@@ -188,14 +202,14 @@ namespace ArduinoModule
             Console.WriteLine("Buzzing GPIO12");
             //while (!Console.KeyAvailable)
             //while (true)
-            {
+            //{
                 await Buzz(gpio);
                 await Buzz(gpio);
                 await Buzz(gpio);
                 await Buzz(gpio);
                 await Buzz(gpio);
                 //Thread.Sleep(500);
-            }
+            //}
 
             //Console.ReadKey();
             //gpioController.Dispose();

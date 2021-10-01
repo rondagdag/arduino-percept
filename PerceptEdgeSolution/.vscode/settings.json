@@ -5,7 +5,7 @@
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.preDeployTask": "publish (functions)",
     "azure-iot-edge.defaultPlatform": {
-        "platform": "arm64v8",
+        "platform": "amd64",
         "alias": null
     }
 }

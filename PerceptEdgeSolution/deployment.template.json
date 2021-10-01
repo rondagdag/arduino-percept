@@ -76,8 +76,8 @@
               "image": "marketplace.azurecr.io/1604376875527/wedx-nodered:latest",
               "createOptions": {
                 "HostConfig": {
+                  "Binds":["node_red_data:/data"],
                   "PortBindings": {
-                    "Binds":["node_red_data:/data"],
                     "1880/tcp": [
                       {
                         "HostPort": "1880"
