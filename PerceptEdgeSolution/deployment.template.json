@@ -108,14 +108,8 @@
             "settings": {
               "image": "${MODULES.ArduinoModule}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
                   "Privileged": true,
-                  "NetworkMode": "host",
                   "Devices": [
                     {
                       "PathOnHost": "/dev/ttyACM0",

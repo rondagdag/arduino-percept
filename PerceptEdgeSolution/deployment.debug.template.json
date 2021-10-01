@@ -102,15 +102,9 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.ArduinoModule}",
-              "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
+              "createOptions": {                
                 "HostConfig": {
-                  "Privileged": true,
-                  "NetworkMode": "host",
+                  "Privileged": true,                  
                   "Devices": [
                     {
                       "PathOnHost": "/dev/ttyACM0",
